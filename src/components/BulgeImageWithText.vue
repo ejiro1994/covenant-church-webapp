@@ -147,11 +147,13 @@
   
     // IntersectionObserver logic
     observer = new window.IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      if (Array.isArray(entries)) {
+        entries.forEach(entry => {
         if (entry.isIntersecting) {
           animateIntro();
         }
       });
+      }
     }, { threshold: 0.3 });
     observer.observe(canvas.value?.parentElement);
   
@@ -193,7 +195,11 @@
       program.uniforms.uBulge.value = uBulge.value
       program.uniforms.uRadius.value = props.radius
       program.uniforms.uStrength.value = props.strength
-      renderer.render({ scene: mesh })
+      if (mesh && mesh.geometry && mesh.geometry.attributes) {
+        renderer.render({ scene: mesh })
+      } else {
+        console.warn('Mesh or its geometry/attributes are undefined in render()', { mesh });
+      }
     }
     animationFrame = requestAnimationFrame(render)
   }
