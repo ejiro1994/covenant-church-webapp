@@ -76,14 +76,20 @@
     texture = new Texture(gl)
     const image = new window.Image()
     image.crossOrigin = ''
-    image.src = props.src
     await new Promise(resolve => {
       image.onload = () => {
         texture.image = image
+        if ('needsUpdate' in texture) texture.needsUpdate = true
         if (program && program.uniforms.uImageSize) {
           program.uniforms.uImageSize.value = new Vec2(image.width, image.height)
         }
+        loaded.value = true // triggers text animation if needed
+        render() // Start rendering only after image is loaded
         resolve()
+      }
+      image.src = props.src
+      if (image.complete) {
+        image.onload()
       }
     })
   
