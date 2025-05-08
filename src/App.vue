@@ -1,9 +1,10 @@
 <template>
   <Navbar />
   <WebglBackground />
-  <div class="white-fade-overlay" ref="fadeOverlay"></div>
+  <!-- <div class="white-fade-overlay" ref="fadeOverlay"></div> -->
   <div class="top-fade-overlay"></div>
   <!-- <HeroSection /> -->
+  <BulgeImageWithText src="/src/assets/image-2.webp" text="Discover"   :radius="1.1" width="150" height="200"/>
   <div class="content">
   
   </div>
@@ -15,6 +16,7 @@ import gsap from 'gsap'
 import Navbar from './components/Navbar.vue'
 import WebglBackground from './WebglBackground.vue'
 import HeroSection from './components/HeroSection.vue'
+import BulgeImageWithText from './components/BulgeImageWithText.vue'
 
 const fadeOverlay = ref<HTMLElement | null>(null)
 
@@ -22,7 +24,7 @@ onMounted(() => {
   if (fadeOverlay.value) {
     gsap.to(fadeOverlay.value, {
       opacity: 0,
-      delay: 2,
+      // delay: 2,
       duration: 1.5,
       ease: 'power3.out',
       pointerEvents: 'none',
