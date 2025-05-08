@@ -3,6 +3,9 @@
     <div class="navbar-logo">
       <img src="/src/assets/Covenant-Color-Logo.svg" alt="Logo" />
     </div>
+    <button class="menu-btn" aria-label="Open menu">
+      <img src="/src/assets/menu-icon.svg" alt="Menu" />
+    </button>
     <!-- Add nav links here if needed -->
   </nav>
 </template>
@@ -13,10 +16,13 @@
 
 <style scoped>
 .navbar {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-x: hidden;
   height: 64px;
   display: flex;
   align-items: center;
@@ -32,5 +38,27 @@
 .navbar-logo img {
   height: 40px;
   width: auto;
+}
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  outline: none;
+  margin-left: auto;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.menu-btn img {
+  height: 28px;
+  width: 28px;
+}
+@media (max-width: 768px) {
+  .menu-btn {
+    display: flex;
+  }
 }
 </style>
