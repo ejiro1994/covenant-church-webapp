@@ -17,7 +17,7 @@ import Navbar from './components/Navbar.vue'
 import WebglBackground from './WebglBackground.vue'
 import HeroSection from './components/HeroSection.vue'
 import BulgeImageWithText from './components/BulgeImageWithText.vue'
-import Lenis from '@studio-freight/lenis'
+import Lenis from 'lenis'
 
 const fadeOverlay = ref<HTMLElement | null>(null)
 let lenis
