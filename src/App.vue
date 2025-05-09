@@ -10,6 +10,8 @@
   <BulgeImageWithText src="/image-4.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
   <BulgeImageWithText src="/image-5.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
   <BulgeImageWithText src="/image-6.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
+  <BulgeImageWithText src="/image-7.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
+  <BulgeImageWithText src="/image-8.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
   <div class="content">
   
   </div>
