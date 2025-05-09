@@ -5,7 +5,8 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     rollupOptions: {
-      external: ["@studio-freight/lenis"]
+      // No externalization needed for lenis
+      // external: ["@studio-freight/lenis"]
     }
   }
 })
