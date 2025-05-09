@@ -36,7 +36,7 @@
   height: 100%;
 }
 .navbar-logo img {
-  height: 40px;
+  height: 50px;
   width: auto;
 }
 .menu-btn {
@@ -53,8 +53,8 @@
   padding: 0;
 }
 .menu-btn img {
-  height: 28px;
-  width: 28px;
+  /* height: 28px; */
+  width: 38px;
 }
 @media (max-width: 768px) {
   .menu-btn {

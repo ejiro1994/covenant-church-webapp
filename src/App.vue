@@ -4,7 +4,7 @@
   <!-- <div class="white-fade-overlay" ref="fadeOverlay"></div> -->
   <div class="top-fade-overlay"></div>
   <!-- <HeroSection /> -->
-  <BulgeImageWithText src="/image-2.webp" text="Discover"   :radius="1.1" width="150" height="200"/>
+  <BulgeImageWithText src="/image-2.webp" text="Discover" :radius="1.1" :width="150" :height="200"/>
   <div class="content">
   
   </div>

@@ -116,7 +116,30 @@
       uniform vec2 uCanvasSize;
       uniform vec2 uImageSize;
       varying vec2 vUv;
-      // ... shader code ...
+
+      // --- GLSL bulge distortion function ---
+      vec2 bulge(vec2 uv, vec2 mouse) {
+        float d = distance(uv, mouse);
+        float bulgeEffect = uBulge * uStrength * smoothstep(uRadius, 0.0, d);
+        vec2 dir = normalize(uv - mouse);
+        return mix(uv, mouse + dir * d * (1.0 + bulgeEffect), bulgeEffect);
+      }
+
+      // --- GLSL coverUv mapping function ---
+      vec2 coverUv(vec2 uv, vec2 canvasSize, vec2 imageSize) {
+        float screenRatio = canvasSize.x / canvasSize.y;
+        float imageRatio = imageSize.x / imageSize.y;
+        vec2 newUv = uv;
+        if (screenRatio < imageRatio) {
+          float scale = canvasSize.y * imageRatio / imageSize.x;
+          newUv.x = (uv.x - 0.5) * scale + 0.5;
+        } else {
+          float scale = canvasSize.x / (imageRatio * imageSize.y);
+          newUv.y = (uv.y - 0.5) * scale + 0.5;
+        }
+        return newUv;
+      }
+
       void main() {
         vec2 mixMouse = mix(uMouseIntro, uMouse, uIntro);
         vec2 bulgeUV = bulge(vUv, mixMouse);
@@ -141,6 +164,14 @@
       uCanvasSize: { value: new Vec2(1, 1) }, // Will update after mount
       uImageSize: { value: new Vec2(1, 1) }, // Will update after image loads
     }
+
+    // Defensive check: log and warn if any uniforms are undefined or wrong type
+Object.entries(uniforms).forEach(([key, val]) => {
+  if (!val || typeof val !== 'object' || !('value' in val)) {
+    console.warn(`Uniform '${key}' is not properly defined:`, val)
+  }
+})
+console.log('Uniforms before Program creation:', uniforms)
   
     program = new Program(gl, {
       vertex,
@@ -201,10 +232,24 @@
       program.uniforms.uBulge.value = uBulge.value
       program.uniforms.uRadius.value = props.radius
       program.uniforms.uStrength.value = props.strength
-      if (mesh && mesh.geometry && mesh.geometry.attributes) {
+      // Helper to check mesh and geometry validity
+      function isMeshRenderable(mesh) {
+        if (!mesh || !mesh.geometry || !mesh.geometry.attributes) return false;
+        const attrs = mesh.geometry.attributes;
+        // Check for required attributes (position, uv, index)
+        return ['position', 'uv', 'index'].every(
+          key => Array.isArray(attrs[key]?.data) || attrs[key]?.data instanceof Float32Array || attrs[key]?.data instanceof Uint16Array
+        );
+      }
+
+      if (isMeshRenderable(mesh)) {
         renderer.render({ scene: mesh })
       } else {
-        console.warn('Mesh or its geometry/attributes are undefined in render()', { mesh });
+        console.warn('Mesh or its geometry/attributes are not valid in render()', {
+          mesh,
+          geometry: mesh?.geometry,
+          attributes: mesh?.geometry?.attributes
+        });
       }
     }
     animationFrame = requestAnimationFrame(render)
