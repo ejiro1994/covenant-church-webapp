@@ -2,13 +2,17 @@
   <section class="hero-section">
     <div class="hero-content">
       <!-- <img src="../assets/Covenant-Color-Logo.svg" alt="Covenant Logo"> -->
-      <h1 class="hero-headline">No More<br>Wilderness.<br>Welcome to<br><span class="promise-font">Promise.</span></h1>
+      <div class="hero-flex">
+        <h1 class="hero-headline">No More<br>Wilderness.<br>Welcome to<br>Promise.</h1>
+        <BulgeImageWithText src="/image-1.jpg" text="Discover" :radius=".9" :width="300/2" :height="400/2"/>
+      </div>
       <!-- <p>This section fades from white to transparent as you scroll down.</p> -->
     </div>
   </section>
 </template>
 
 <script setup>
+import BulgeImageWithText from './BulgeImageWithText.vue'
 // Add props or emits here if needed in the future
 </script>
 
@@ -40,14 +44,45 @@
   padding: 2rem;
 }
 
+.hero-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+}
+
 .hero-headline {
-  font-family: 'PT Sans', Arial, sans-serif;
+  flex: 1;
+  text-align: left;
+  font-size: 9rem;
+}
+
+.hero-flex > *:not(:last-child) {
+  margin-right: 1.5rem;
+}
+
+@font-face {
+  font-family: 'HeroRegular';
+  src: url('@/assets/fonts/regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'HeroBold';
+  src: url('@/assets/fonts/bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+.hero-headline {
+  font-family: 'HeroBold', 'PT Sans', Arial, sans-serif;
   font-size: 2.7rem;
   font-weight: 700;
   margin: 2rem 0 1.5rem 0;
   line-height: 1.15;
   letter-spacing: 0.01em;
-  color: #0FACB2;
+  color: #13505B;
+  text-align: left;
 }
 
 .promise-font {

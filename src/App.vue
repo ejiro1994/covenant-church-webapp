@@ -2,8 +2,8 @@
   <Navbar />
   <WebglBackground />
   <!-- <div class="white-fade-overlay" ref="fadeOverlay"></div> -->
-  <div class="top-fade-overlay"></div>
-  <!-- <HeroSection /> -->
+  <!-- <div class="top-fade-overlay"></div> -->
+  <HeroSection />
   <BulgeImageWithText src="/image-1.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
   <BulgeImageWithText src="/image-2.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
   <BulgeImageWithText src="/image-3.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
@@ -15,6 +15,7 @@
   <div class="content">
   
   </div>
+  <Footer />
 </template>
 
 <script setup lang="ts">
@@ -24,6 +25,7 @@ import Navbar from './components/Navbar.vue'
 import WebglBackground from './WebglBackground.vue'
 import HeroSection from './components/HeroSection.vue'
 import BulgeImageWithText from './components/BulgeImageWithText.vue'
+import Footer from './components/Footer.vue'
 import Lenis from 'lenis'
 
 const fadeOverlay = ref<HTMLElement | null>(null)

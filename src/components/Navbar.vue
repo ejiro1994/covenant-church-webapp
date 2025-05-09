@@ -39,6 +39,12 @@
   height: 50px;
   width: auto;
 }
+
+@media (max-width: 768px) {
+  .navbar-logo img {
+    height: 40px;
+  }
+}
 .menu-btn {
   display: none;
   background: none;

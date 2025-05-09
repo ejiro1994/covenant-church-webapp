@@ -11,6 +11,16 @@
       <!-- <div class="discover-text">{{ text }}</div> -->
     </div>
   </template>
+
+<style scoped>
+.bulge-image-card {
+  transition: transform 1s cubic-bezier(.25,.8,.25,1);
+}
+.bulge-image-card:hover {
+  transform: scale(1.05);
+  z-index: 2;
+}
+</style>
   
   <script setup>
   import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
