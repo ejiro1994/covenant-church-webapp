@@ -3,24 +3,36 @@
   <WebglBackground />
   <!-- <div class="white-fade-overlay" ref="fadeOverlay"></div> -->
   <div class="top-fade-overlay"></div>
-  <!-- <HeroSection /> -->
-  <BulgeImageWithText src="/image-2.webp" text="Discover" :radius="1.1" :width="150" :height="200"/>
+  <HeroSection />
+  <BulgeImageWithText src="/image-1.jpg" text="Discover" :radius=".9" :width="300" :height="400"/>
   <div class="content">
   
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import gsap from 'gsap'
 import Navbar from './components/Navbar.vue'
 import WebglBackground from './WebglBackground.vue'
 import HeroSection from './components/HeroSection.vue'
 import BulgeImageWithText from './components/BulgeImageWithText.vue'
+import Lenis from '@studio-freight/lenis'
 
 const fadeOverlay = ref<HTMLElement | null>(null)
+let lenis
 
 onMounted(() => {
+  lenis = new Lenis({
+    lerp: 0.08, // smoothness
+    infinite: false,
+  })
+  function raf(time) {
+    lenis.raf(time)
+    requestAnimationFrame(raf)
+  }
+  requestAnimationFrame(raf)
+
   if (fadeOverlay.value) {
     gsap.to(fadeOverlay.value, {
       opacity: 0,

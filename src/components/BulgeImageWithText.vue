@@ -32,69 +32,96 @@
   let renderer, gl, program, mesh, texture
   let animationFrame
   let uniforms
+  // Mouse uniforms and smooth interpolation
   const mouse = new Vec2(0.5, 0.5)
+  const mouseTarget = new Vec2(0.5, 0.5)
   const mouseIntro = new Vec2(0.5, 0.5)
   const uIntro = { value: 0 }
   const uBulge = { value: 0 }
-  
+  let ready = false; // Prevents early rendering
+  let hasAnimatedIntro = false;
+
+  // Animate intro (show)
   function animateIntro() {
-  uBulge.value = 0;
-  uIntro.value = 0;
-  gsap.fromTo(
-    uBulge,
-    { value: 0 },
-    { value: 1, duration: 1.8, ease: 'power3.out' }
-  );
-  gsap.to(uIntro, {
-    value: 1,
-    duration: 5,
-    onComplete: () => {
-      loaded.value = true // triggers text animation
-    }
-  });
-}
-  
+    if (hasAnimatedIntro) return;
+    hasAnimatedIntro = true;
+    uBulge.value = 1;
+    uIntro.value = 0;
+    gsap.fromTo(
+      uBulge,
+      { value: 1 },
+      { value: 0, duration: 1.8, ease: 'power3.out' }
+    );
+    gsap.to(uIntro, {
+      value: 1,
+      duration: 5,
+      delay: 0,
+      onComplete: () => {
+        loaded.value = true;
+      }
+    });
+  }
+
+  // Animate hide
+  function animateHide() {
+    hasAnimatedIntro = false;
+    gsap.to(uBulge, {
+      value: 1,
+      duration: 1.8,
+      ease: 'power3.out',
+      delay: 0,
+    });
+    gsap.to(uIntro, { value: 0, duration: 1, delay: 0 });
+  }
+
   // IntersectionObserver for scroll-into-view intro trigger
   let observer = null;
   onMounted(async () => {
-    await nextTick();
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    const dpr = Math.min(window.devicePixelRatio, 2);
-    renderer = new Renderer({ dpr, canvas: canvas.value });
-    gl = renderer.gl;
-    gl.clearColor(0, 0, 0, 0);
-  
-    // Geometry (plane)
-    const geometry = new Geometry(gl, {
-      position: { size: 2, data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]) },
-      uv: { size: 2, data: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]) },
-      index: { data: new Uint16Array([0, 1, 2, 0, 2, 3]) },
-    })
-  
-    // Texture
-    texture = new Texture(gl)
-    const image = new window.Image()
-    image.crossOrigin = ''
-    await new Promise(resolve => {
-      image.onload = () => {
-        texture.image = image
-        if ('needsUpdate' in texture) texture.needsUpdate = true
-        if (program && program.uniforms.uImageSize) {
-          program.uniforms.uImageSize.value = new Vec2(image.width, image.height)
-        }
-        loaded.value = true // triggers text animation if needed
-        render() // Start rendering only after image is loaded
-        resolve()
+  await nextTick();
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  renderer = new Renderer({ dpr, canvas: canvas.value });
+  gl = renderer.gl;
+  gl.clearColor(0, 0, 0, 0);
+
+  // Geometry (plane)
+  const geometry = new Geometry(gl, {
+    position: { size: 2, data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]) },
+    uv: { size: 2, data: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]) },
+    index: { data: new Uint16Array([0, 1, 2, 0, 2, 3]) },
+  })
+
+  // Texture
+  texture = new Texture(gl)
+  const image = new window.Image()
+  image.crossOrigin = ''
+  await new Promise(resolve => {
+    image.onload = () => {
+      // Always reset uniforms before animation
+      uBulge.value = 0;
+      uIntro.value = 0;
+      hasAnimatedIntro = false;
+      ready = true; // Only now are we ready to render
+      texture.image = image;
+      if ('needsUpdate' in texture) texture.needsUpdate = true;
+      if (program && program.uniforms.uImageSize) {
+        program.uniforms.uImageSize.value = new Vec2(image.width, image.height);
       }
-      image.src = props.src
-      if (image.complete) {
-        image.onload()
-      }
-    })
-  
-    // Shaders
-    const vertex = `
+      loaded.value = false; // Not loaded until intro completes
+      // Only trigger animation after everything is ready
+      animateIntro();
+      render(); // Start rendering only after image is loaded and ready
+      resolve();
+    }
+    image.src = props.src
+    if (image.complete) {
+      image.onload()
+    }
+  })
+
+  // Shaders
+  const vertex = `
       attribute vec2 position;
       attribute vec2 uv;
       varying vec2 vUv;
@@ -164,14 +191,6 @@
       uCanvasSize: { value: new Vec2(1, 1) }, // Will update after mount
       uImageSize: { value: new Vec2(1, 1) }, // Will update after image loads
     }
-
-    // Defensive check: log and warn if any uniforms are undefined or wrong type
-Object.entries(uniforms).forEach(([key, val]) => {
-  if (!val || typeof val !== 'object' || !('value' in val)) {
-    console.warn(`Uniform '${key}' is not properly defined:`, val)
-  }
-})
-console.log('Uniforms before Program creation:', uniforms)
   
     program = new Program(gl, {
       vertex,
@@ -186,15 +205,16 @@ console.log('Uniforms before Program creation:', uniforms)
     observer = new window.IntersectionObserver((entries) => {
       if (Array.isArray(entries)) {
         entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          animateIntro();
-        }
-      });
+          if (entry.isIntersecting) {
+            animateIntro();
+          } else {
+            animateHide();
+          }
+        });
       }
     }, { threshold: 0.3 });
     observer.observe(canvas.value?.parentElement);
   
-    render()
   })
   
   onBeforeUnmount(() => {
@@ -206,51 +226,62 @@ console.log('Uniforms before Program creation:', uniforms)
   
   function onMouseMove(e) {
     const rect = canvas.value.getBoundingClientRect()
-    mouse.x = (e.clientX - rect.left) / rect.width
-    mouse.y = (e.clientY - rect.top) / rect.height
+    // Clamp and normalize mouse coordinates
+    const x = (e.clientX - rect.left) / rect.width
+    const y = (e.clientY - rect.top) / rect.height
+    mouse.x = gsap.utils.clamp(0, 1, x)
+    mouse.y = gsap.utils.clamp(0, 1, y)
   }
   
   let tlEnter = null
   let tlLeave = null
-  
+
+  // Mouse enter: animate uIntro and bulge just like Card.js
   function onMouseEnter() {
     tlLeave?.kill()
     tlEnter?.kill()
-    tlEnter = gsap.to(uBulge, { value: 1, duration: 1, ease: 'expo.out' })
+    tlEnter = gsap.timeline()
+    tlEnter.to(uIntro, { value: 1, duration: 5, ease: 'expo.out' })
+    tlEnter.to(uBulge, { value: 1, duration: 1, ease: 'expo.out' }, 0)
   }
-  
+
+  // Mouse leave: animate bulge back
   function onMouseLeave() {
     tlEnter?.kill()
     tlLeave?.kill()
-    tlLeave = gsap.to(uBulge, { value: 0, duration: 1, ease: 'expo.out' })
+    tlLeave = gsap.timeline()
+    tlLeave.to(uBulge, { value: 0, duration: 1, ease: 'expo.out' })
   }
   
   function render() {
-    if (program) {
-      program.uniforms.uMouse.value.set(mouse.x, 1 - mouse.y)
-      program.uniforms.uIntro.value = uIntro.value
-      program.uniforms.uBulge.value = uBulge.value
-      program.uniforms.uRadius.value = props.radius
-      program.uniforms.uStrength.value = props.strength
-      // Helper to check mesh and geometry validity
-      function isMeshRenderable(mesh) {
-        if (!mesh || !mesh.geometry || !mesh.geometry.attributes) return false;
-        const attrs = mesh.geometry.attributes;
-        // Check for required attributes (position, uv, index)
-        return ['position', 'uv', 'index'].every(
-          key => Array.isArray(attrs[key]?.data) || attrs[key]?.data instanceof Float32Array || attrs[key]?.data instanceof Uint16Array
-        );
-      }
+    if (!ready || !gl || !program || !mesh) return;
+    uniforms.uTime.value += 0.016;
+    // Smoothly interpolate mouse position, like Card.js
+    mouseTarget.x = gsap.utils.interpolate(mouseTarget.x, mouse.x, 0.1)
+    mouseTarget.y = gsap.utils.interpolate(mouseTarget.y, mouse.y, 0.1)
+    program.uniforms.uMouse.value.set(mouseTarget.x, 1 - mouseTarget.y)
+    program.uniforms.uIntro.value = uIntro.value
+    program.uniforms.uBulge.value = uBulge.value
+    program.uniforms.uRadius.value = props.radius
+    program.uniforms.uStrength.value = props.strength
+    // Helper to check mesh and geometry validity
+    function isMeshRenderable(mesh) {
+      if (!mesh || !mesh.geometry || !mesh.geometry.attributes) return false;
+      const attrs = mesh.geometry.attributes;
+      // Check for required attributes (position, uv, index)
+      return ['position', 'uv', 'index'].every(
+        key => Array.isArray(attrs[key]?.data) || attrs[key]?.data instanceof Float32Array || attrs[key]?.data instanceof Uint16Array
+      );
+    }
 
-      if (isMeshRenderable(mesh)) {
-        renderer.render({ scene: mesh })
-      } else {
-        console.warn('Mesh or its geometry/attributes are not valid in render()', {
-          mesh,
-          geometry: mesh?.geometry,
-          attributes: mesh?.geometry?.attributes
-        });
-      }
+    if (isMeshRenderable(mesh)) {
+      renderer.render({ scene: mesh })
+    } else {
+      console.warn('Mesh or its geometry/attributes are not valid in render()', {
+        mesh,
+        geometry: mesh?.geometry,
+        attributes: mesh?.geometry?.attributes
+      });
     }
     animationFrame = requestAnimationFrame(render)
   }
